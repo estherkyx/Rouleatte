@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROULEATTE</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #ffffff;
+            margin: 0;
+        }
+        .logo {
+            max-width: 600px;
+            height: auto;
+            margin-bottom: 50px;
+        }
+        
+        .main-assembly {
+            display: flex;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            perspective: 800px; 
+        }
+
+        .machine-container {
+            background-color: #2c3e50;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            display: flex;
+            gap: 15px;
+            z-index: 2; 
+            position: relative;
+        }
+
+        .slot {
+            background-color: #ffffff;
+            width: 140px;
+            height: 120px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            position: relative; 
+        }
+
+        .slot:hover {
+            transform: translateY(-2px); 
+        }
+
+        .slot.confirmed {
+            background-color: #d1f2eb;
+        }
+
+        .category-label {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .result-text {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .lock-select {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0; 
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .lock-select:disabled {
+            cursor: default;
+        }
+
+        .clear-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(231, 76, 60, 0.1);
+            border: none;
+            color: #e74c3c;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 20; 
+            display: none; 
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        
+        .clear-btn:hover {
+            background: rgba(231, 76, 60, 0.3);
+        }
+
+        .slot.confirmed .clear-btn {
+            display: flex;
+        }
+
+        .lever-assembly {
+            position: relative;
+            width: 60px;
+            height: 180px;
+            margin-left: -10px; 
+            z-index: 1;
+        }
+        .lever-base {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 40px;
+            height: 80px;
+            background: linear-gradient(to right, #4a4a4a, #7a7a7a, #333333);
+            border-radius: 0 12px 12px 0;
+            box-shadow: inset -2px 0 5px rgba(0,0,0,0.5), 5px 5px 10px rgba(0,0,0,0.4);
+        }
+        .lever-arm-wrapper {
+            position: absolute;
+            bottom: 70px;
+            left: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform-origin: bottom center;
+            transition: transform 0.25s ease-in;
+            cursor: pointer;
+        }
+        .lever-arm-wrapper:not(.disabled):hover .lever-knob {
+            filter: brightness(1.1);
+        }
+        .lever-arm-wrapper.pulled {
+            transform: rotateX(60deg) translateY(20px);
+        }
+        .lever-arm-wrapper.disabled {
+            cursor: not-allowed;
+        }
+        .lever-knob {
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle at 30% 30%, #ff7675, #e74c3c, #900000);
+            border-radius: 50%;
+            margin-bottom: -5px; 
+            box-shadow: 2px 5px 10px rgba(0,0,0,0.4);
+            z-index: 2;
+        }
+        .lever-arm {
+            width: 12px;
+            height: 100px;
+            background: linear-gradient(to right, #bdc3c7, #ffffff, #7f8c8d);
+            border-radius: 6px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            z-index: 1;
+        }
+
+        .reset-all-btn {
+            padding: 12px 24px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.2s;
+        }
+
+        .reset-all-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #2c3e50;
+            min-height: 1.5em;
+        }
+        @media (max-width: 800px) {
+            .logo {
+                width: 80%;
+                margin-bottom: 0px;
+            }
+
+            /* Force the entire assembly to scale down if necessary to fit the screen */
+            .main-assembly {
+                flex-direction: row;
+                justify-content: center;
+                width: 100%;
+                max-width: 100vw;
+                overflow: hidden;
+                transform: scale(0.95);
+            }
+
+            .machine-container {
+                padding: 10px;
+                gap: 5px; /* Tighter spacing */
+            }
+
+            .slot {
+                width: 14vw; /* Scales relative to screen width */
+                max-width: 65px;
+                height: 85px;
+                padding: 4px;
+            }
+
+            .category-label {
+                font-size: 8px; /* Minimal space for labels */
+                letter-spacing: 0;
+                margin-bottom: 4px;
+            }
+
+            .result-text {
+                font-size: 11px;
+                line-height: 1.1;
+                word-break: break-word; /* Forces long words to wrap instead of overflowing */
+                hyphens: auto;
+            }
+
+            .clear-btn {
+                width: 18px;
+                height: 18px;
+                font-size: 10px;
+                top: 2px;
+                right: 2px;
+            }
+
+            /* Shrink the lever and keep it anchored to the right */
+            .lever-assembly {
+                transform: scale(0.65);
+                transform-origin: bottom left;
+                margin-left: -15px; 
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <img src="logo.png" alt="Rouleatte Logo" class="logo">
+
+    <div class="main-assembly">
+        <div class="machine-container">
+            <div class="slot">
+                <button class="clear-btn" onclick="clearSlot('meat')">✖</button>
+                <span class="category-label">Meat</span>
+                <span class="result-text" id="slot-meat">?</span>
+                <select id="lock-meat" class="lock-select"><option value="" disabled selected>Select...</option></select>
+            </div>
+            <div class="slot">
+                <button class="clear-btn" onclick="clearSlot('carb')">✖</button>
+                <span class="category-label">Carbs</span>
+                <span class="result-text" id="slot-carb">?</span>
+                <select id="lock-carb" class="lock-select"><option value="" disabled selected>Select...</option></select>
+            </div>
+            <div class="slot">
+                <button class="clear-btn" onclick="clearSlot('veg')">✖</button>
+                <span class="category-label">Vegetable</span>
+                <span class="result-text" id="slot-veg">?</span>
+                <select id="lock-veg" class="lock-select"><option value="" disabled selected>Select...</option></select>
+            </div>
+            <div class="slot">
+                <button class="clear-btn" onclick="clearSlot('flavour')">✖</button>
+                <span class="category-label">Flavour</span>
+                <span class="result-text" id="slot-flavour">?</span>
+                <select id="lock-flavour" class="lock-select"><option value="" disabled selected>Select...</option></select>
+            </div>
+            <div class="slot">
+                <button class="clear-btn" onclick="clearSlot('method')">✖</button>
+                <span class="category-label">Method</span>
+                <span class="result-text" id="slot-method">?</span>
+                <select id="lock-method" class="lock-select"><option value="" disabled selected>Select...</option></select>
+            </div>
+        </div>
+
+        <div class="lever-assembly">
+            <div class="lever-base"></div>
+            <div class="lever-arm-wrapper" id="lever-trigger" onclick="pullLever()">
+                <div class="lever-knob"></div>
+                <div class="lever-arm"></div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="reset-all-btn" onclick="resetAll()">Reset All</button>
+    <p id="status-message" class="status-message"></p>
+
+    <script>
+        const data = {
+            meat: ["Chicken", "Minced Chicken", "Beef", "Minced Beef", "Pork", "Minced Pork", "Lamb", "Duck", "Salmon", "White Fish", "Prawn", "Squid"],
+            carb: ["Rice", "Long Pasta", "Short Pasta", "Stuffed/Sheet Pasta", "Potato", "Bagel", "Burger", "Pizza", "Bread", "Udon", "Rice Noodle", "Wheat noodle", "Egg noodle", "Quinoa/Couscous", "Tortilla Wrap"],
+            veg: ["Broccoli", "Cauliflower", "Brussel Sprouts", "Spinach", "Corn", "Cabbage", "Asparagus", "Zucchini", "Tomato", "Kang Kong", "Kai Lan", "Chye Sim", "Bok Choy", "Lady’s Finger", "Pumpkin", "Mushroom", "Bell pepper", "Cucumber", "Carrot", "Beansprout", "Eggplant"],
+            flavour: ["Salted Egg", "Garlic Butter", "Truffle", "Tomato", "Pesto", "Lemon & Herb", "Teriyaki", "Miso", "Gochujang", "Curry", "Black Pepper", "Sweet & Sour", "Cajun", "Mala", "Sambal", "Tomyum", "Creamy/Cheese"],
+            method: ["Stir-fried", "Deep-fried", "Grilled", "Roasted/Baked", "Steamed", "Boiled/Poached", "Braised"]
+        };
+
+        const slots = ['meat', 'carb', 'veg', 'flavour', 'method'];
+        let isSpinning = false;
+
+        slots.forEach(slot => {
+            const select = document.getElementById(`lock-${slot}`);
+            const resultText = document.getElementById(`slot-${slot}`);
+            const slotContainer = resultText.parentElement;
+
+            data[slot].forEach(item => {
+                const option = document.createElement('option');
+                option.value = item;
+                option.textContent = item;
+                select.appendChild(option);
+            });
+
+            select.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    resultText.innerText = e.target.value;
+                    slotContainer.classList.add('confirmed');
+                }
+            });
+        });
+
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function clearSlot(slot) {
+            if (isSpinning) return;
+            
+            const select = document.getElementById(`lock-${slot}`);
+            const resultText = document.getElementById(`slot-${slot}`);
+            const slotContainer = resultText.parentElement;
+
+            select.value = ''; 
+            select.disabled = false; 
+            resultText.innerText = '?';
+            slotContainer.classList.remove('confirmed');
+            
+            document.getElementById('status-message').innerText = '';
+        }
+
+        function resetAll() {
+            if (isSpinning) return;
+            slots.forEach(slot => clearSlot(slot));
+        }
+
+        function pullLever() {
+            if (isSpinning) return; 
+            
+            const lever = document.getElementById('lever-trigger');
+            lever.classList.add('pulled');
+            
+            setTimeout(() => {
+                lever.classList.remove('pulled');
+                spin();
+            }, 250);
+        }
+
+        function spin() {
+            isSpinning = true;
+            const lever = document.getElementById('lever-trigger');
+            const statusMessage = document.getElementById('status-message');
+            
+            lever.classList.add('disabled');
+            statusMessage.innerText = ''; 
+
+            const intervals = {};
+            const baseDuration = 1000; 
+            let activeSpins = 0; 
+
+            slots.forEach((slot, index) => {
+                const element = document.getElementById(`slot-${slot}`);
+                const slotContainer = element.parentElement;
+                const lockSelect = document.getElementById(`lock-${slot}`);
+                
+                lockSelect.disabled = true;
+                
+                if (lockSelect.value) {
+                    element.innerText = lockSelect.value;
+                    slotContainer.classList.add('confirmed');
+                } else {
+                    activeSpins++;
+                    slotContainer.classList.remove('confirmed');
+
+                    intervals[slot] = setInterval(() => {
+                        element.innerText = getRandomItem(data[slot]);
+                    }, 50);
+
+                    setTimeout(() => {
+                        clearInterval(intervals[slot]);
+                        const finalItem = getRandomItem(data[slot]);
+                        element.innerText = finalItem;
+                        lockSelect.value = finalItem;
+                        slotContainer.classList.add('confirmed');
+                        
+                        activeSpins--;
+                        checkCompletion();
+                    }, baseDuration + (index * 1000));
+                }
+            });
+
+            function checkCompletion() {
+                if (activeSpins === 0) {
+                    isSpinning = false;
+                    lever.classList.remove('disabled');
+                    statusMessage.innerText = 'Ready to cook?';
+                    slots.forEach(slot => {
+                        document.getElementById(`lock-${slot}`).disabled = false;
+                    });
+                }
+            }
+
+            checkCompletion();
+        }
+    </script>
+</body>
+</html>
