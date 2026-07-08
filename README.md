@@ -1,6 +1,8 @@
 # Rouleatte
 
-Rouleatte is an interactive, browser-based meal generator styled as a slot machine. It randomises five core components of a dish to solve decision fatigue when planning meals.
+[Rouleatte](rouleatte.netlify.app) is an interactive, browser-based meal generator styled as a slot machine. It randomises five core components of a dish to solve decision fatigue when planning meals.
+
+<img width="2074" height="1162" alt="CleanShot 2026-07-08 at 14 57 57@2x" src="https://github.com/user-attachments/assets/ca42b372-5d08-480d-85fb-d933ad3e1e38" />
 
 ## Features
 
@@ -30,3 +32,6 @@ Assume you have leftover beef in the fridge that must be cooked today, but you h
 3. The remaining four slots spin and resolve.
 4. The machine outputs a complete meal concept: "Beef", "Udon", "Spinach", "Teriyaki", and "Stir-fried".
 5. Enjoy your delicious meal!
+
+## Try it now!
+[rouleatte.netlify.app](rouleatte.netlify.app)
